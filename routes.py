@@ -3,6 +3,10 @@ import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from database import get_vector_store
+from pydantic import BaseModel
+
+class QueryIn(BaseModel):
+    query_text: str
 
 load_dotenv()
 mistral_key = os.getenv("MISTRAL_API_KEY")
@@ -39,15 +43,8 @@ def root():
 
 
 @router.post("/query")
-async def get_response(query_text: str):
-
+async def get_response(payload: QueryIn):
     rag_chain = get_rag_chain()
-
-    question = {
-        "input": query_text,
-        "context": ""
-    }
-
+    question = {"input": payload.query_text, "context": ""}
     response = utils.generate_response(rag_chain, question)
-
     return {"answer": response}
